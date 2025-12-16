@@ -1,0 +1,157 @@
+.event-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.event-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-title {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.event-description {
+  color: #666;
+  margin: 0 0 15px 0;
+  line-height: 1.6;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-details {
+  margin: 15px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+.detail-icon {
+  font-size: 16px;
+}
+
+.event-actions {
+  margin-top: auto;
+  padding-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-rsvp,
+.btn-unrsvp,
+.btn-edit,
+.btn-delete,
+.btn-disabled {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex: 1;
+}
+
+.btn-rsvp {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-rsvp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-unrsvp {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.btn-unrsvp:hover {
+  background: #e0e0e0;
+}
+
+.btn-edit {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #45a049;
+}
+
+.btn-delete {
+  background: #f44336;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #da190b;
+}
+
+.btn-disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .event-content {
+    padding: 15px;
+  }
+
+  .event-title {
+    font-size: 20px;
+  }
+
+  .event-actions {
+    flex-direction: column;
+  }
+
+  .btn-rsvp,
+  .btn-unrsvp,
+  .btn-edit,
+  .btn-delete {
+    width: 100%;
+  }
+}
+
