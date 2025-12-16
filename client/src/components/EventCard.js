@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { eventsAPI } from '../services/api';
@@ -7,6 +8,8 @@ import './EventCard.css';
 const EventCard = ({ event, onUpdate }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const cardRef = useRef(null);
+  const imageRef = useRef(null);
 
   const isCreator = user && String(event.createdBy?._id || event.createdBy) === String(user.id);
   const isAttending = user && event.attendees?.some(a => String(a) === String(user.id));
@@ -77,11 +80,65 @@ const EventCard = ({ event, onUpdate }) => {
 
   const imageSrc = getImageSrc();
 
+  useEffect(() => {
+    if (cardRef.current) {
+      // Entrance animation
+      gsap.fromTo(cardRef.current,
+        { opacity: 0, y: 20, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power2.out" }
+      );
+
+      // Hover animations
+      const card = cardRef.current;
+      const handleMouseEnter = () => {
+        gsap.to(card, {
+          y: -5,
+          scale: 1.02,
+          duration: 0.3,
+          ease: "power2.out",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.15)"
+        });
+        if (imageRef.current) {
+          gsap.to(imageRef.current, {
+            scale: 1.1,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+        }
+      };
+
+      const handleMouseLeave = () => {
+        gsap.to(card, {
+          y: 0,
+          scale: 1,
+          duration: 0.3,
+          ease: "power2.out",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
+        });
+        if (imageRef.current) {
+          gsap.to(imageRef.current, {
+            scale: 1,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+        }
+      };
+
+      card.addEventListener('mouseenter', handleMouseEnter);
+      card.addEventListener('mouseleave', handleMouseLeave);
+
+      return () => {
+        card.removeEventListener('mouseenter', handleMouseEnter);
+        card.removeEventListener('mouseleave', handleMouseLeave);
+      };
+    }
+  }, []);
+
   return (
-    <div className="event-card">
+    <div className="event-card" ref={cardRef}>
       {imageSrc && (
         <div className="event-image">
-          <img src={imageSrc} alt={event.title} />
+          <img src={imageSrc} alt={event.title} ref={imageRef} />
         </div>
       )}
       <div className="event-content">

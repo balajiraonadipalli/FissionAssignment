@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { eventsAPI, aiAPI } from '../services/api';
+import LoadingSpinner from './LoadingSpinner';
 import './EventForm.css';
 
 const EventForm = () => {
@@ -23,6 +25,8 @@ const EventForm = () => {
   });
   const [previewImage, setPreviewImage] = useState(null);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const formCardRef = useRef(null);
+  const formFieldsRef = useRef(null);
 
   const categories = ['General', 'Technology', 'Business', 'Education', 'Entertainment', 'Sports', 'Networking', 'Other'];
 
@@ -34,6 +38,18 @@ const EventForm = () => {
 
     if (isEdit) {
       fetchEvent();
+    }
+
+    // Form entrance animation
+    if (formCardRef.current && formFieldsRef.current) {
+      gsap.fromTo(formCardRef.current,
+        { opacity: 0, y: 30, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "power2.out" }
+      );
+      gsap.fromTo(formFieldsRef.current.children,
+        { opacity: 0, x: -20 },
+        { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, delay: 0.2, ease: "power2.out" }
+      );
     }
   }, [id, user, navigate, isEdit]);
 
@@ -196,12 +212,20 @@ const EventForm = () => {
     }
   };
 
+  if (loading && !isEdit) {
+    return (
+      <div className="form-container">
+        <LoadingSpinner message={isEdit ? "Updating event..." : "Creating event..."} />
+      </div>
+    );
+  }
+
   return (
     <div className="form-container">
-      <div className="form-card">
+      <div className="form-card" ref={formCardRef}>
         <h2>{isEdit ? 'Edit Event' : 'Create New Event'}</h2>
         {error && <div className="error-message">{error}</div>}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} ref={formFieldsRef}>
           <div className="form-group">
             <label>Title *</label>
             <input

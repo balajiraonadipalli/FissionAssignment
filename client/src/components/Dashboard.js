@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { gsap } from 'gsap';
 import { eventsAPI } from '../services/api';
 import EventCard from './EventCard';
+import LoadingSpinner from './LoadingSpinner';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -13,8 +15,11 @@ const Dashboard = () => {
   const [endDate, setEndDate] = useState('');
 
   const categories = ['All', 'General', 'Technology', 'Business', 'Education', 'Entertainment', 'Sports', 'Networking', 'Other'];
+  const headerRef = useRef(null);
+  const filtersRef = useRef(null);
+  const eventsGridRef = useRef(null);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       const filters = {};
@@ -26,27 +31,55 @@ const Dashboard = () => {
       const response = await eventsAPI.getAll(filters);
       setEvents(response.data);
       setError('');
+      
+      // Animate events grid after data loads
+      if (eventsGridRef.current) {
+        const cards = eventsGridRef.current.children;
+        gsap.fromTo(cards, 
+          { 
+            opacity: 0, 
+            y: 30,
+            scale: 0.9
+          },
+          { 
+            opacity: 1, 
+            y: 0,
+            scale: 1,
+            duration: 0.5,
+            stagger: 0.1,
+            ease: "power2.out"
+          }
+        );
+      }
     } catch (err) {
       setError('Failed to load events. Please try again.');
       console.error('Error fetching events:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, [category, startDate, endDate]);
+  }, [category, startDate, endDate, searchTerm]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchTerm !== undefined) {
-        fetchEvents();
-      }
-    }, 500); // Debounce search
+      fetchEvents();
+    }, searchTerm ? 500 : 0); // Debounce search only, immediate for other filters
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  }, [fetchEvents]);
+
+  // Initial page load animations
+  useEffect(() => {
+    if (!loading && headerRef.current && filtersRef.current) {
+      gsap.fromTo(headerRef.current,
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
+      );
+      gsap.fromTo(filtersRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
+      );
+    }
+  }, [loading]);
 
   const handleClearFilters = () => {
     setSearchTerm('');
@@ -58,16 +91,16 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="dashboard-container">
-        <div className="loading">Loading events...</div>
+        <LoadingSpinner message="Loading events..." />
       </div>
     );
   }
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header">
+      <div className="dashboard-header" ref={headerRef}>
         <h1>Upcoming Events</h1>
-        <div className="filters-section">
+        <div className="filters-section" ref={filtersRef}>
           <div className="search-container">
             <input
               type="text"
@@ -132,7 +165,7 @@ const Dashboard = () => {
           )}
         </div>
       ) : (
-        <div className="events-grid">
+        <div className="events-grid" ref={eventsGridRef}>
           {events.map((event) => (
             <EventCard key={event._id} event={event} onUpdate={fetchEvents} />
           ))}

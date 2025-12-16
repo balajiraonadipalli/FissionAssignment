@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -9,12 +10,34 @@ const Navbar = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navbarRef = useRef(null);
+  const menuRef = useRef(null);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
     setIsMenuOpen(false);
   };
+
+  useEffect(() => {
+    if (navbarRef.current) {
+      gsap.fromTo(navbarRef.current,
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (menuRef.current) {
+      if (isMenuOpen) {
+        gsap.fromTo(menuRef.current.children,
+          { opacity: 0, x: -20 },
+          { opacity: 1, x: 0, duration: 0.3, stagger: 0.05, ease: "power2.out" }
+        );
+      }
+    }
+  }, [isMenuOpen]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -25,7 +48,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`navbar ${darkMode ? 'dark' : ''}`}>
+    <nav className={`navbar ${darkMode ? 'dark' : ''}`} ref={navbarRef}>
       <div className="navbar-container">
         <Link to="/" className="navbar-brand" onClick={closeMenu}>
           EventHub
@@ -41,7 +64,7 @@ const Navbar = () => {
             <span></span>
           </span>
         </button>
-        <div className={`navbar-menu ${isMenuOpen ? 'active' : ''}`}>
+        <div className={`navbar-menu ${isMenuOpen ? 'active' : ''}`} ref={menuRef}>
           {user ? (
             <>
               <Link to="/" className="navbar-link" onClick={closeMenu}>

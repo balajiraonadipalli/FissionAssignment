@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
 import { useAuth } from '../context/AuthContext';
 import { eventsAPI } from '../services/api';
 import EventCard from './EventCard';
+import LoadingSpinner from './LoadingSpinner';
 import './UserDashboard.css';
 
 const UserDashboard = () => {
@@ -11,6 +13,9 @@ const UserDashboard = () => {
   const [createdEvents, setCreatedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const headerRef = useRef(null);
+  const tabsRef = useRef(null);
+  const eventsGridRef = useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -28,6 +33,15 @@ const UserDashboard = () => {
       setAttendingEvents(attending.data);
       setCreatedEvents(created.data);
       setError('');
+      
+      // Animate events after loading
+      if (eventsGridRef.current) {
+        const cards = eventsGridRef.current.children;
+        gsap.fromTo(cards,
+          { opacity: 0, y: 30, scale: 0.9 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: "power2.out" }
+        );
+      }
     } catch (err) {
       setError('Failed to load events. Please try again.');
       console.error('Error fetching user events:', err);
@@ -40,10 +54,23 @@ const UserDashboard = () => {
     fetchEvents();
   };
 
+  useEffect(() => {
+    if (!loading && headerRef.current && tabsRef.current) {
+      gsap.fromTo(headerRef.current,
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
+      );
+      gsap.fromTo(tabsRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" }
+      );
+    }
+  }, [loading]);
+
   if (loading) {
     return (
       <div className="user-dashboard-container">
-        <div className="loading">Loading your events...</div>
+        <LoadingSpinner message="Loading your events..." />
       </div>
     );
   }
@@ -52,12 +79,12 @@ const UserDashboard = () => {
 
   return (
     <div className="user-dashboard-container">
-      <div className="dashboard-header">
+      <div className="dashboard-header" ref={headerRef}>
         <h1>My Dashboard</h1>
         <p className="welcome-text">Welcome back, {user?.name}!</p>
       </div>
 
-      <div className="tabs">
+      <div className="tabs" ref={tabsRef}>
         <button
           className={`tab ${activeTab === 'attending' ? 'active' : ''}`}
           onClick={() => setActiveTab('attending')}
@@ -89,7 +116,7 @@ const UserDashboard = () => {
           )}
         </div>
       ) : (
-        <div className="events-grid">
+        <div className="events-grid" ref={eventsGridRef}>
           {currentEvents.map((event) => (
             <EventCard key={event._id} event={event} onUpdate={refreshEvents} />
           ))}
